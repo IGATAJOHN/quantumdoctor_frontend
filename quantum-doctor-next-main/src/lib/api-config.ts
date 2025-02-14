@@ -1,0 +1,47 @@
+export const API_ENDPOINTS = {
+  AUTH: {
+    LOGIN: '/auth/login',
+    SIGNUP: '/auth/signup',
+    DOCTOR_LOGIN: '/auth/doctor-login',
+    DOCTOR_SIGNUP: '/auth/doctor-signup',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password',
+    REFRESH_TOKEN: '/auth/token/refresh',
+  },
+  VITALS: {
+    GET_VITALS: '/vitals/get_vitals',
+    UPDATE_VITALS: '/vitals/update_vitals',
+    GET_HISTORY: '/vitals/get_vitals_history',
+    BLOOD_PRESSURE: '/vitals/blood_pressure',
+    HEART_RATE: '/vitals/heart_rate',
+    TEMPERATURE: '/vitals/temperature',
+    BLOOD_OXYGEN: '/vitals/blood_oxygen',
+    CHATBOT: '/vitals/chatbot',
+  },
+  LAB_TESTS: {
+    REQUEST_TEST: '/lab-tests/request_test',
+    UPLOAD_RESULT: '/lab-tests/upload_test_result',
+    VIEW_RESULTS: '/lab-tests/view_test_results',
+    VIEW_ALL_RESULTS: '/lab-tests/view_all_test_results',
+    DOWNLOAD_RESULT: '/lab-tests/download_test_result',
+  },
+  CONSULTATION: {
+    BOOK: '/consultation/book_consultation',
+    GET_DOCTORS: '/consultation/doctors',
+    SEARCH_DOCTORS: '/consultation/doctors/search',
+    DOCTOR_REQUESTS: '/consultation/doctor/requests',
+    MANAGE_REQUEST: '/consultation/doctor/request',
+  },
+  PAYMENTS: {
+    MAKE_PAYMENT: '/payments/make_payment',
+    CALLBACK: '/payments/payment_callback',
+  },
+  ADMIN: {
+    LOGIN: '/admin/admin-login',
+    SIGNUP: '/admin/admin-signup',
+    APPROVE_DOCTOR: '/admin/approve-doctor',
+    VERIFY_DOCTOR: '/admin/verify-doctor',
+    GET_DOCTORS: '/admin/doctors',
+    GET_UNVERIFIED_DOCTORS: '/admin/unverified-doctors',
+  },
+};

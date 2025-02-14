@@ -1,380 +1,245 @@
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import React, { useState } from 'react'
-// import { Button } from 'react-day-picker'
+import React, { useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import apiClient from '@/lib/api-client';
+import { API_ENDPOINTS } from '@/lib/api-config';
 
-const SignupForm = () => {
-    const [formStage, setFormStage] = useState(1)
-    const [formData, setFormData] = useState({
-        firstName: '',
-        email: '',
-        contact: '',
-        dateOfBirth: '',
-        location: '',
-        termsAccepted: false,
-    })
-    const [selectedImages, setSelectedImages] = useState<number[]>([])
-    const [error, setError] = useState('')
-    const [captchaChecked, setCaptchaChecked] = useState(false) // For Stage 4
-    const [registrationComplete, setRegistrationComplete] = useState(false) // For success message
-    const [isModalOpen, setIsModalOpen] = useState(false) // State for modal visibility
-
-    // Images (mock images for bicycle selection)
-    const images = [
-        { id: 1, src: '/images/image1.jpg', alt: 'Car' },
-        { id: 2, src: '/images/image3.jpg', alt: 'Bicycle 1' },
-        { id: 3, src: '/images/image2.jpg', alt: 'Motorcycle' },
-        { id: 4, src: '/images/image4.jpg', alt: 'Bicycle 2' },
-    ]
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
-    }
-
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, termsAccepted: e.target.checked })
-    }
-
-    const handleContinue = () => {
-        if (
-            formData.firstName &&
-            formData.email &&
-            formData.contact &&
-            formData.termsAccepted
-        ) {
-            setFormStage(2) // Move to Stage 2
-        } else {
-            alert('Please fill out all fields and accept the terms.')
-        }
-    }
-
-    const handleVerifyAndContinue = () => {
-        // Here, you can check if CAPTCHA is verified
-        setIsModalOpen(true)
-    }
-
-    const handleImageSelect = (id: number) => {
-        setError('')
-        if (selectedImages.includes(id)) {
-            setSelectedImages(selectedImages.filter((img) => img !== id))
-        } else {
-            setSelectedImages([...selectedImages, id])
-        }
-    }
-
-    const handleRegister = () => {
-        if (
-            selectedImages.some(
-                (id) =>
-                    !images.find((img) => img.id === id)?.alt.includes('Bike')
-            )
-        ) {
-            setError('Please select only images with bicycles.')
-        } else {
-            setError(null)
-            // Continue with registration logic
-        }
-        setIsModalOpen(true) // after verification
-        setFormStage(4)
-    }
-
-    const handleFinalRegister = () => {
-        if (captchaChecked) {
-            // Registration is successful
-            setRegistrationComplete(true)
-        } else {
-            setError(
-                'Please check the CAPTCHA box to confirm you are not a robot.'
-            )
-        }
-    }
-
-    return (
-        <div className="flex flex-col md:flex-row h-screen">
-            <div className="w-full p-8 md:w-1/2 bg-card-bg px-4 md:px-8 lg:px-12 flex flex-col justify-center items-center gap-y-6 text-text-primary">
-                <img
-                    src="/images/bro.png"
-                    alt="Doctor illustration"
-                    className="w-2/4 h-auto mb-4"
-                />
-                <p className="w-2/4 text-center font-semibold text-lg flex flex-col gap-y-2 mb-0 pb-0">
-                    Step into a healthier you with our AI doctor at your fingertips.
-                    <span className="mt-2 text-xs">
-                        Already have an account?{' '}
-                        <a href="/auth/login" className="text-blue-600">
-                            Log in
-                        </a>
-                    </span>
-                </p>
-            </div>
-            <div className="w-full md:w-1/2 bg-white p-12 flex flex-col justify-center">
-                {!registrationComplete ? (
-                    <>
-                        {formStage === 1 && (
-                            <>
-                                <div className="flex justify-center items-center p-4 ">
-                                    <img
-                                        src="/images/logo.svg"
-                                        className="h-[190px] w-auto"
-                                        alt="Workflow logo"
-                                    />
-                                </div>
-                                <h2 className="text-quantum-blue text-2xl font-semibold mb-6 flex justify-center items-center p-4">
-                                    Create an account
-                                </h2>
-                                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-y-4 md:space-x-4 mb-4">
-                                    <Input
-                                        type="text"
-                                        name="firstName"
-                                        placeholder="First Name"
-                                        className="w-full col-span-1 border border-gray-300 p-2 rounded-md"
-                                        value={formData.firstName}
-                                        onChange={handleInputChange}
-                                    />
-                                    <Input
-                                        type="text"
-                                        name="lastName"
-                                        placeholder="Last Name"
-                                        className="w-full col-span-1 border border-gray-300 p-2 rounded-md m-0"
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <Input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email address"
-                                    className="w-full border border-gray-300 p-2 rounded-md mb-4"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                />
-                                <Input
-                                    type="text"
-                                    name="contact"
-                                    placeholder="Contact"
-                                    className="w-full border border-gray-300 p-2 rounded-md mb-4"
-                                    value={formData.contact}
-                                    onChange={handleInputChange}
-                                />
-
-                                {/* <Input
-                                    type="date"
-                                    name="dateOfBirth"
-                                    className="w-full border border-gray-300 p-2 rounded-md mb-4"
-                                    value={formData.dateOfBirth}
-                                    onChange={handleInputChange}
-                                />
-
-                                <Input
-                                    type="text"
-                                    name="location"
-                                    placeholder="Location"
-                                    className="w-full border border-gray-300 p-2 rounded-md mb-4"
-                                    value={formData.location}
-                                    onChange={handleInputChange}
-                                /> */}
-                                <div className="flex items-center mb-6 text-text-primary font-light">
-                                    <input
-                                        type='checkbox'
-                                        id="terms"
-                                        className="mr-2"
-                                        checked={formData.termsAccepted}
-                                        onChange={handleCheckboxChange}
-                                    />
-                                    <Label htmlFor="terms" className='text-sm text-text-secondary'>
-                                        I agree to the Terms & Conditions and
-                                        Privacy Policy.
-                                    </Label>
-                                </div>
-                                <Button
-                                    onClick={handleContinue}
-                                    className="bg-quantum-blue text-white w-full p-2 rounded-md hover:bg-blue-700 transition duration-300"
-                                >
-                                    Continue
-                                </Button>
-                            </>
-                        )}
-
-                        {formStage === 2 && (
-                            <>
-                                <div className="flex justify-center items-center p-4 ">
-                                    <img
-                                        src="/images/logo.jpg"
-                                        className="h-20 w-auto"
-                                        alt="Workflow logo"
-                                    />
-                                </div>
-                                <h2 className="text-2xl font-semibold mb-6 flex justify-center items-center p-4">
-                                    Create an account{' '}
-                                </h2>
-                                <div className="flex flex-col mb-6">
-                                    <label htmlFor="password" className="mb-1">
-                                        Password
-                                    </label>
-                                    <input
-                                        type="password"
-                                        id="password"
-                                        className="border border-gray-300 p-2 rounded-md mb-4"
-                                        placeholder="Enter your password"
-                                    />
-                                    <label
-                                        htmlFor="confirmPassword"
-                                        className="mb-1"
-                                    >
-                                        Confirm Password
-                                    </label>
-                                    <input
-                                        type="password"
-                                        id="confirmPassword"
-                                        className="border border-gray-300 p-2 rounded-md mb-4"
-                                        placeholder="Confirm your password"
-                                    />
-                                    <label htmlFor="role" className="mb-1">
-                                        Role
-                                    </label>
-                                    <select
-                                        id="role"
-                                        className="border border-gray-300 p-2 rounded-md mb-4"
-                                    >
-                                        <option value="" disabled selected>
-                                            Select your role
-                                        </option>
-                                        <option value="user">Patient</option>
-                                        <option value="client">Doctor</option>
-                                    </select>
-                                </div>
-                                <div className="flex justify-center items-center mb-6">
-                                    <input
-                                        type="checkbox"
-                                        id="captcha"
-                                        className="mr-2"
-                                    />
-                                    <label htmlFor="captcha">
-                                        I am not a robot
-                                    </label>
-                                </div>
-                                <button
-                                    onClick={handleVerifyAndContinue}
-                                    className="bg-green-600 text-white w-full p-2 rounded-md hover:bg-green-700 transition duration-300"
-                                >
-                                    Register
-                                </button>
-                                {/* <p className="text-gray-600 mb-4">Please click on all images that show a bicycle.</p> */}
-
-                                {isModalOpen && (
-                                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-                                        <div className="relative max-w-md w-full bg-white rounded-lg shadow-lg p-6">
-                                            <h3 className="text-xl font-semibold mb-4">
-                                                Please select all images with
-                                                bicycles
-                                            </h3>
-                                            <div className="grid grid-cols-3 gap-4 mb-4">
-                                                {images.map((image) => (
-                                                    <div
-                                                        key={image.id}
-                                                        className={`border-2 p-2 rounded-md cursor-pointer ${
-                                                            selectedImages.includes(
-                                                                image.id
-                                                            )
-                                                                ? 'border-green-600'
-                                                                : 'border-gray-300'
-                                                        }`}
-                                                        onClick={() =>
-                                                            handleImageSelect(
-                                                                image.id
-                                                            )
-                                                        }
-                                                    >
-                                                        <img
-                                                            src={image.src}
-                                                            alt={image.alt}
-                                                            className="w-full h-24 object-cover"
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            {error && (
-                                                <p className="text-red-600 mb-4">
-                                                    {error}
-                                                </p>
-                                            )}
-                                            <button
-                                                onClick={handleRegister}
-                                                className="bg-green-600 text-white w-full p-2 rounded-md hover:bg-green-700 transition duration-300"
-                                            >
-                                                Verify
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    setIsModalOpen(false)
-                                                }
-                                                className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl font-bold"
-                                            >
-                                                &times;
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </>
-                        )}
-
-                        {/* Stage 4 - Final CAPTCHA check and success */}
-                        {formStage === 4 && (
-                            <>
-                                <div className="flex justify-center items-center p-4 ">
-                                    <img
-                                        src="/images/logo.jpg"
-                                        className="h-20 w-auto"
-                                        alt="Workflow logo"
-                                    />
-                                </div>
-                                <h2 className="text-2xl font-semibold mb-6 flex justify-center items-center p-4">
-                                    Create an account{' '}
-                                </h2>
-                                <div className="flex items-center mb-6">
-                                    <input
-                                        type="checkbox"
-                                        id="finalCaptcha"
-                                        className="mr-2"
-                                        checked={captchaChecked}
-                                        onChange={() =>
-                                            setCaptchaChecked(!captchaChecked)
-                                        }
-                                    />
-                                    <label htmlFor="finalCaptcha">
-                                        I am not a robot
-                                    </label>
-                                </div>
-                                <button
-                                    onClick={handleFinalRegister}
-                                    className="bg-blue-600 text-white w-full p-2 rounded-md hover:bg-blue-700 transition duration-300"
-                                >
-                                    Register & Complete
-                                </button>
-                            </>
-                        )}
-                    </>
-                ) : (
-                    <div className="text-center">
-                        <h2 className="text-2xl font-semibold mb-4">
-                            Registration Successful!
-                        </h2>
-                        <p>
-                            Thank you for signing up. You can now access your
-                            account.
-                        </p>
-                        <a
-                            href="/login"
-                            className="text-blue-600 mt-4 inline-block"
-                        >
-                            Go to Login
-                        </a>
-                    </div>
-                )}
-            </div>
-        </div>
-    )
+interface SignupFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  dateOfBirth: string;
+  location: string;
 }
 
-export default SignupForm
+const SignupPage = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<SignupFormData>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    dateOfBirth: '',
+    location: '',
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('firstName', formData.firstName);
+      formDataToSend.append('lastName', formData.lastName);
+      formDataToSend.append('phone', formData.phone);
+      formDataToSend.append('dateOfBirth', formData.dateOfBirth);
+      formDataToSend.append('location', formData.location);
+
+      await apiClient.post(API_ENDPOINTS.AUTH.SIGNUP, formDataToSend);
+
+      toast.success('Account created successfully! Please login.');
+      router.push('/auth/login');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to create account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <img
+          className="mx-auto h-12 w-auto"
+          src="/images/logo.svg"
+          alt="Quantum Doctor"
+        />
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Create your account
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
+            Sign in
+          </Link>
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  type="text"
+                  required
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email address</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleInputChange}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="dateOfBirth">Date of Birth</Label>
+              <Input
+                id="dateOfBirth"
+                name="dateOfBirth"
+                type="date"
+                required
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                name="location"
+                type="text"
+                required
+                value={formData.location}
+                onChange={handleInputChange}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={handleInputChange}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+            </div>
+          </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <img className="h-5 w-5" src="/images/google.svg" alt="Google" />
+                <span className="ml-2">Google</span>
+              </Button>
+
+              <Button
+                type="button"
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+              >
+                <img className="h-5 w-5" src="/images/apple.svg" alt="Apple" />
+                <span className="ml-2">Apple</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SignupPage;
