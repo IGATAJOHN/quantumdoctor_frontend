@@ -1,73 +1,58 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { ROUTES, isPublicPath, isProtectedPath, hasRouteAccess } from '@/lib/routes';
+import { getToken } from 'next-auth/jwt';
+import { ROUTES } from '@/lib/routes';
 
-// Paths that should be ignored by middleware
-const IGNORED_PATHS = [
-  '/_next',
-  '/api',
-  '/static',
-  '/images',
-  '/favicon.ico',
-  '/manifest.json',
-  '/robots.txt'
+// Add routes that don't require authentication
+const publicPaths = [
+  '/',
+  '/auth/login',
+  '/auth/signup',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/about',
+  '/contact',
 ];
 
-export function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-  // Skip middleware for ignored paths
-  if (IGNORED_PATHS.some(prefix => path.startsWith(prefix))) {
+  // Allow public paths
+  if (publicPaths.some(path => pathname === path || pathname.startsWith('/api/public'))) {
     return NextResponse.next();
   }
 
-  // Get auth tokens and user role
-  const token = request.cookies.get('token')?.value;
-  const userRole = request.cookies.get('userRole')?.value as 'user' | 'doctor' | 'admin' | undefined;
-
-  // Handle public paths
-  if (isPublicPath(path)) {
-    // If user is already authenticated, redirect to their dashboard
-    if (token && userRole) {
-      const dashboardPath = 
-        userRole === 'user' ? ROUTES.USER.DASHBOARD :
-        userRole === 'doctor' ? ROUTES.DOCTOR.DASHBOARD :
-        userRole === 'admin' ? ROUTES.ADMIN.DASHBOARD :
-        ROUTES.PUBLIC.HOME;
-      return NextResponse.redirect(new URL(dashboardPath, request.url));
+  // Check for API routes
+  if (pathname.startsWith('/api/')) {
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
     }
     return NextResponse.next();
   }
 
-  // Handle protected paths
-  if (isProtectedPath(path)) {
-    // Redirect to login if no token
-    if (!token || !userRole) {
-      const loginUrl = new URL(ROUTES.PUBLIC.LOGIN, request.url);
-      loginUrl.searchParams.set('from', path);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Check role-based access
-    if (!hasRouteAccess(path, userRole)) {
-      // Redirect to appropriate dashboard
-      const dashboardPath = 
-        userRole === 'user' ? ROUTES.USER.DASHBOARD :
-        userRole === 'doctor' ? ROUTES.DOCTOR.DASHBOARD :
-        ROUTES.ADMIN.DASHBOARD;
-      return NextResponse.redirect(new URL(dashboardPath, request.url));
-    }
-
-    return NextResponse.next();
+  // Check authentication for protected routes
+  const token = request.cookies.get('next-auth.session-token');
+  if (!token) {
+    return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
-  // For any other paths, show 404
-  return NextResponse.rewrite(new URL(ROUTES.PUBLIC.NOT_FOUND, request.url));
+  // Allow access to protected routes
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // Match all paths except static files
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    /*
+     * Match all request paths except:
+     * 1. /api/auth/* (authentication endpoints)
+     * 2. /_next/* (Next.js internals)
+     * 3. /static/* (static files)
+     * 4. /*.* (files with extensions)
+     */
+    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
   ],
 };

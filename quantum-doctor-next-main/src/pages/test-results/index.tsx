@@ -1,9 +1,8 @@
 // imports
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '@/layouts/dashboard';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import 'react-datepicker/dist/react-datepicker.css';
 import DatePicker from 'react-datepicker';
-
 
 // looks
 interface Lab {
@@ -501,7 +500,7 @@ const LabDetails = ({ lab, onProceed }: { lab: Lab; onProceed: () => void }) => 
                 <div className="flex-[1.2] space-y-2 md:w-1/2">
                     <div className="flex items-center space-x-4">
                         <img src="/images/Group 228.png" alt="Lab" className="w-20 h-20 rounded-full object-cover" />
-                        <div className="flex flex-col">
+                        <div>
                             <h2 className="font-semibold text-lg">{lab.name}</h2>
                             <p className="text-sm text-blue-400">1.2 miles away</p>
                         </div>
