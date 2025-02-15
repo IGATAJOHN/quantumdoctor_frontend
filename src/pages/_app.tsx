@@ -12,12 +12,10 @@ const lexend = Lexend({
     weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
 })
 
-
-
 export default function MyApp({ Component, pageProps }: AppProps) {
     return (
         <SidebarProvider>
-            <div className={lexend.className + " bg-white text-text-primary"}>
+            <div className={lexend.className + " w-full min-h-screen overflow-x-hidden bg-white text-text-primary"}>
                 <RootLayout>
                     <Component {...pageProps} />
                 </RootLayout>

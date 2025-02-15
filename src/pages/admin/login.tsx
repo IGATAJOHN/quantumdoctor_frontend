@@ -34,7 +34,20 @@ const AdminLogin = () => {
                 router.push('/admin/dashboard');
             }
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Login failed');
+            const errorMessage = error.response?.data?.message || 'Login failed';
+            
+            if (error.response?.status === 403) {
+                toast.error('Your admin account is pending approval. Please contact the super admin.');
+            } else if (error.response?.status === 401) {
+                toast.error('Invalid email or password');
+            } else {
+                toast.error(errorMessage);
+            }
+            
+            console.error('Login error:', {
+                status: error.response?.status,
+                message: errorMessage
+            });
         } finally {
             setLoading(false);
         }

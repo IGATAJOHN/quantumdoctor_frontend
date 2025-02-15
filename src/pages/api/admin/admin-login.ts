@@ -14,6 +14,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { db } = await connectToDatabase();
         const admin = await db.collection('admins').findOne({ email });
 
+        // Log the found admin for debugging
+        console.log('Found admin:', admin ? {
+            email: admin.email,
+            is_approved: admin.is_approved,
+            is_super_admin: admin.is_super_admin
+        } : 'No admin found');
+
         if (!admin) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -28,7 +35,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const token = jwt.sign(
-            { userId: admin._id, role: 'admin' },
+            { 
+                userId: admin._id, 
+                role: 'admin',
+                is_super_admin: admin.is_super_admin 
+            },
             process.env.JWT_SECRET || 'your-secret-key',
             { expiresIn: '24h' }
         );
@@ -40,7 +51,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 id: admin._id,
                 email: admin.email,
                 firstName: admin.first_name,
-                lastName: admin.last_name
+                lastName: admin.last_name,
+                is_super_admin: admin.is_super_admin
             }
         });
     } catch (error) {
